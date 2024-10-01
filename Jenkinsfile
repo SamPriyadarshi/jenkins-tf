@@ -59,7 +59,7 @@ pipeline {
                     }
 
                     // Handle empty tf_plan_dirs
-                    if (tf_plan_dirs == null || tf_plan_dirs.isEmpty()) {
+                    if (tf_plan_dirs == null) {
                         echo "No Terraform files changed."
                         env.TF_PLAN_DIRS = "" // Set to empty string
                     } else {
