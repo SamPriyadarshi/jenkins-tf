@@ -77,11 +77,9 @@ pipeline {
                         if (dir) {
                             echo "Running Terraform plan for directory: ${dir}"
                             dir(dir) {
-                                container('terraform') {
-                                    sh 'terraform init'
-                                    sh 'terraform validate'
-                                    sh 'terraform plan'
-                                }
+                                sh 'terraform init'
+                                sh 'terraform validate'
+                                sh 'terraform plan'
                             }
                         }
                     }
@@ -100,11 +98,9 @@ pipeline {
                         if (dir) {
                             echo "Running Terraform apply for directory: ${dir}"
                             dir(dir) {
-                                container('terraform') {
-                                    sh 'terraform init'
-                                    sh 'terraform plan'
-                                    sh 'terraform apply -auto-approve' 
-                                }
+                                sh 'terraform init'
+                                sh 'terraform plan'
+                                sh 'terraform apply -auto-approve'
                             }
                         }
                     }
