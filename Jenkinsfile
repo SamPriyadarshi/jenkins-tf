@@ -31,7 +31,7 @@ pipeline {
                             it.path.split('/')[0..-2].join('/')
                         }.unique()
                     } else {
-                        if (env.BRANCH_NAME != 'main') {
+                        if (env.BRANCH_NAME != 'origin/main') {
                             // For Merge Requests, compare with the target branch
                             sh "git checkout main"
                             sh "git checkout ${env.BRANCH_NAME}"
@@ -68,7 +68,7 @@ pipeline {
 
         stage('Terraform Plan') {
             when {
-                expression { env.BRANCH_NAME != 'main' && env.TF_PLAN_DIRS?.trim() } // Run for Merge Requests
+                expression { env.BRANCH_NAME != 'origin/main' && env.TF_PLAN_DIRS?.trim() } // Run for Merge Requests
             }
             steps {
                 script {
@@ -95,7 +95,7 @@ pipeline {
 
         stage('Terraform Apply') {
             when {
-                expression { env.BRANCH_NAME == 'main' && env.TF_PLAN_DIRS?.trim() } // Run after merge to main
+                expression { env.BRANCH_NAME == 'origin/main' && env.TF_PLAN_DIRS?.trim() } // Run after merge to main
             }
             steps {
                 script {
