@@ -77,9 +77,8 @@ pipeline {
                         if (dir) {
                             echo "Running Terraform plan for directory: ${dir}"
                             sh "cd ${dir}"
-                            dir(dir) {
+                            dir("${dir}") {
                                 echo "inside dir"
-                                echo ${dir}
                             }
                         }
                     }
