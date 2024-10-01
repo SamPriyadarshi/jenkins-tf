@@ -76,13 +76,16 @@ pipeline {
                         dir = dir.trim()
                         if (dir) {
                             echo "Running Terraform plan for directory: ${dir}"
-                            sh 'pwd'
-                            sh "cd ${pwd}/${dir}"
-                            sh 'pwd'
-                            sh 'ls'
-                            dir('dir1') {
-                                echo 'inside dir'
-                                sh 'pwd'
+                            try {
+                                // Alternative 1: Using sh with 'cd'
+                                sh """
+                                    cd "${dir}"
+                                    terraform init
+                                    terraform validate
+                                    terraform plan
+                                """
+                            } catch (Exception ex) {
+                                echo "Error running Terraform plan in directory ${dir}: ${ex.message}"
                             }
                         }
                     }
