@@ -31,11 +31,11 @@ pipeline {
                             it.path.split('/')[0..-2].join('/')
                         }.unique()
                     } else {
-                        if (env.BRANCH_NAME != 'main') {
+                        if (env.BRANCH_NAME != 'origin/main') {
                             // For Merge Requests, compare with the target branch
-                            sh "git checkout main"
+                            sh "git checkout origin/main"
                             sh "git checkout ${env.BRANCH_NAME}"
-                            def commonAncestor = sh(returnStdout: true, script: "git merge-base main ${env.BRANCH_NAME}").trim()
+                            def commonAncestor = sh(returnStdout: true, script: "git merge-base origin/main ${env.BRANCH_NAME}").trim()
                             // Capture the output of git diff and check if it's empty
                             def gitDiffOutput = sh(returnStdout: true, script: "git --no-pager diff --name-only ${env.GIT_COMMIT} ${commonAncestor} -- '*.tf'").trim()
                             if (gitDiffOutput) {  // Only proceed if there's output
@@ -68,7 +68,7 @@ pipeline {
 
         stage('Terraform Plan') {
             when {
-                expression { env.BRANCH_NAME != 'main' && env.TF_PLAN_DIRS?.trim() } // Run for Merge Requests
+                expression { env.BRANCH_NAME != 'origin/main' && env.TF_PLAN_DIRS?.trim() } // Run for Merge Requests
             }
             steps {
                 script {
@@ -95,7 +95,7 @@ pipeline {
 
         stage('Terraform Apply') {
             when {
-                expression { env.BRANCH_NAME == 'main' && env.TF_PLAN_DIRS?.trim() } // Run after merge to main
+                expression { env.BRANCH_NAME == 'origin/main' && env.TF_PLAN_DIRS?.trim() } // Run after merge to main
             }
             steps {
                 script {
