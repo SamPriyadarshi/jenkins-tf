@@ -3,7 +3,6 @@ pipeline {
 
     environment {
         TF_PLAN_DIRS = ""
-        BRANCH_NAME = ""
     }
 
     stages {
