@@ -40,13 +40,21 @@ pipeline {
                             sh "git checkout main"
                             sh "git checkout ${env.BRANCH_NAME}"
                             def commonAncestor = sh(returnStdout: true, script: "git merge-base main ${env.BRANCH_NAME}").trim()
-                            tf_plan_dirs = sh(returnStdout: true, script: "git --no-pager diff --name-only ${env.GIT_COMMIT} ${commonAncestor} -- '*.tf' | xargs dirname | sort | uniq").trim().split('\n')
+                            // Capture the output of git diff and check if it's empty
+                            def gitDiffOutput = sh(returnStdout: true, script: "git --no-pager diff --name-only ${env.GIT_COMMIT} ${commonAncestor} -- '*.tf'").trim()
+                            if (gitDiffOutput) {  // Only proceed if there's output
+                                tf_plan_dirs = sh(returnStdout: true, script: "echo '${gitDiffOutput}' | xargs dirname | sort | uniq").trim().split('\n')
+                            }
                         } else {
                             // For merges to main, compare the merge commit's parents
                             def mergeCommitParents = sh(returnStdout: true, script: "git rev-list --parents ${env.GIT_COMMIT} -n 1").trim().split()
                             def parent1 = mergeCommitParents[0]
                             def parent2 = mergeCommitParents[1]
-                            tf_plan_dirs = sh(returnStdout: true, script: "git --no-pager diff --name-only ${parent1} ${parent2} -- '*.tf' | xargs dirname | sort | uniq").trim().split('\n')
+                            // Capture the output of git diff and check if it's empty
+                            def gitDiffOutput = sh(returnStdout: true, script: "git --no-pager diff --name-only ${parent1} ${parent2} -- '*.tf'").trim()
+                            if (gitDiffOutput) {  // Only proceed if there's output
+                                tf_plan_dirs = sh(returnStdout: true, script: "echo '${gitDiffOutput}' | xargs dirname | sort | uniq").trim().split('\n')
+                            }
                         }
                     }
 
