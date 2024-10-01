@@ -103,10 +103,16 @@ pipeline {
                         dir = dir.trim()
                         if (dir) {
                             echo "Running Terraform apply for directory: ${dir}"
-                            dir(dir) {
-                                sh 'terraform init -reconfigure'
-                                sh 'terraform plan'
-                                sh 'terraform apply -auto-approve'
+                            try {
+                                // Alternative 1: Using sh with 'cd'
+                                sh """
+                                    cd "${dir}"
+                                    terraform init
+                                    terraform validate
+                                    terraform plan
+                                """
+                            } catch (Exception ex) {
+                                echo "Error running Terraform apply in directory ${dir}: ${ex.message}"
                             }
                         }
                     }
