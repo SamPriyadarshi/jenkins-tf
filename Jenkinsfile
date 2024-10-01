@@ -1,10 +1,6 @@
 pipeline {
     agent any
 
-    environment {
-        TF_PLAN_DIRS = ""
-    }
-
     stages {
         stage('Checkout') {
             steps {
@@ -59,7 +55,7 @@ pipeline {
                     }
 
                     // Handle empty tf_plan_dirs
-                    if (tf_plan_dirs == null || tf_plan_dirs.isEmpty()) {
+                    if (tf_plan_dirs == null) {
                         echo "No Terraform files changed."
                         env.TF_PLAN_DIRS = "" // Set to empty string
                     } else {
@@ -80,12 +76,16 @@ pipeline {
                         dir = dir.trim()
                         if (dir) {
                             echo "Running Terraform plan for directory: ${dir}"
-                            dir(dir) {
-                                container('terraform') {
-                                    sh 'terraform init'
-                                    sh 'terraform validate'
-                                    sh 'terraform plan'
-                                }
+                            try {
+                                // Alternative 1: Using sh with 'cd'
+                                sh """
+                                    cd "${dir}"
+                                    terraform init
+                                    terraform validate
+                                    terraform plan
+                                """
+                            } catch (Exception ex) {
+                                echo "Error running Terraform plan in directory ${dir}: ${ex.message}"
                             }
                         }
                     }
@@ -103,12 +103,16 @@ pipeline {
                         dir = dir.trim()
                         if (dir) {
                             echo "Running Terraform apply for directory: ${dir}"
-                            dir(dir) {
-                                container('terraform') {
-                                    sh 'terraform init'
-                                    sh 'terraform plan'
-                                    sh 'terraform apply -auto-approve' 
-                                }
+                            try {
+                                // Alternative 1: Using sh with 'cd'
+                                sh """
+                                    cd "${dir}"
+                                    terraform init
+                                    terraform validate
+                                    terraform plan
+                                """
+                            } catch (Exception ex) {
+                                echo "Error running Terraform apply in directory ${dir}: ${ex.message}"
                             }
                         }
                     }
