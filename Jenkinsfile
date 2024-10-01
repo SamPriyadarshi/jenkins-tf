@@ -1,10 +1,6 @@
 pipeline {
     agent any
 
-    environment {
-        TF_PLAN_DIRS = ""
-    }
-
     stages {
         stage('Checkout') {
             steps {
