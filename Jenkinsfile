@@ -33,9 +33,9 @@ pipeline {
                     } else {
                         if (env.BRANCH_NAME != 'origin/main') {
                             // For Merge Requests, compare with the target branch
-                            sh "git checkout main"
+                            sh "git checkout origin/main"
                             sh "git checkout ${env.BRANCH_NAME}"
-                            def commonAncestor = sh(returnStdout: true, script: "git merge-base main ${env.BRANCH_NAME}").trim()
+                            def commonAncestor = sh(returnStdout: true, script: "git merge-base origin/main ${env.BRANCH_NAME}").trim()
                             // Capture the output of git diff and check if it's empty
                             def gitDiffOutput = sh(returnStdout: true, script: "git --no-pager diff --name-only ${env.GIT_COMMIT} ${commonAncestor} -- '*.tf'").trim()
                             if (gitDiffOutput) {  // Only proceed if there's output
