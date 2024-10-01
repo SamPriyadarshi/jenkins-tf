@@ -76,11 +76,9 @@ pipeline {
                         dir = dir.trim()
                         if (dir) {
                             echo "Running Terraform plan for directory: ${dir}"
-                            sh 'terraform'
                             dir(dir) {
-                                sh 'terraform init -reconfigure'
-                                sh 'terraform validate'
-                                sh 'terraform plan'
+                                echo "inside dir"
+                                echo ${dir}
                             }
                         }
                     }
