@@ -108,8 +108,8 @@ pipeline {
                                 sh """
                                     cd "${dir}"
                                     terraform init
-                                    terraform validate
                                     terraform plan
+                                    terraform apply -auto-approve
                                 """
                             } catch (Exception ex) {
                                 echo "Error running Terraform apply in directory ${dir}: ${ex.message}"
