@@ -72,7 +72,7 @@ pipeline {
 
         stage('Terraform Plan') {
             when {
-                expression { env.BRANCH_NAME != 'main' && !env.TF_PLAN_DIRS.isEmpty() } // Run for Merge Requests
+                expression { env.BRANCH_NAME != 'main' && env.TF_PLAN_DIRS?.trim() } // Run for Merge Requests
             }
             steps {
                 script {
@@ -95,7 +95,7 @@ pipeline {
 
         stage('Terraform Apply') {
             when {
-                expression { env.BRANCH_NAME == 'main' && !env.TF_PLAN_DIRS.isEmpty() } // Run after merge to main
+                expression { env.BRANCH_NAME == 'main' && env.TF_PLAN_DIRS?.trim() } // Run after merge to main
             }
             steps {
                 script {
