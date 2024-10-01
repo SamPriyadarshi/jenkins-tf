@@ -77,7 +77,7 @@ pipeline {
                         if (dir) {
                             echo "Running Terraform plan for directory: ${dir}"
                             sh 'pwd'
-                            sh "cd pwd/${dir}"
+                            sh "cd ${pwd}/${dir}"
                             sh 'pwd'
                             sh 'ls'
                             dir('dir1') {
