@@ -9,6 +9,18 @@ pipeline {
         stage('Checkout') {
             steps {
                 checkout scm
+                script {
+                    // Determine the branch name
+                    if (env.CHANGE_BRANCH) {
+                        env.BRANCH_NAME = env.CHANGE_BRANCH
+                    } else if (env.GIT_BRANCH) {
+                        env.BRANCH_NAME = env.GIT_BRANCH
+                    } else {
+                        env.BRANCH_NAME = env.GITHUB_REF.replace('refs/heads/', '')
+                    }
+
+                    echo "Building branch: ${env.BRANCH_NAME}"
+                }                
             }
         }
 
