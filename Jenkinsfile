@@ -76,7 +76,9 @@ pipeline {
                         dir = dir.trim()
                         if (dir) {
                             echo "Running Terraform plan for directory: ${dir}"
+                            sh "pwd"
                             sh "cd ${dir}"
+                            sh "pwd"
                             dir("dir1") {
                                 echo "inside dir"
                                 sh "pwd"
