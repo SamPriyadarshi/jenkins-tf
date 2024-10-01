@@ -58,15 +58,21 @@ pipeline {
                         }
                     }
 
-                    env.TF_PLAN_DIRS = tf_plan_dirs.join(',')
-                    echo "Terraform Plans changed by this PR/Merge are: ${env.TF_PLAN_DIRS}"
+                    // Handle empty tf_plan_dirs
+                    if (tf_plan_dirs == null || tf_plan_dirs.isEmpty()) {
+                        echo "No Terraform files changed."
+                        env.TF_PLAN_DIRS = "" // Set to empty string
+                    } else {
+                        env.TF_PLAN_DIRS = tf_plan_dirs.join(',')
+                        echo "Terraform Plans changed by this PR/Merge are: ${env.TF_PLAN_DIRS}"
+                    }
                 }
             }
         }
 
         stage('Terraform Plan') {
             when {
-                expression { env.BRANCH_NAME != 'main' } // Run for Merge Requests
+                expression { env.BRANCH_NAME != 'main' && !env.TF_PLAN_DIRS.isEmpty() } // Run for Merge Requests
             }
             steps {
                 script {
@@ -89,7 +95,7 @@ pipeline {
 
         stage('Terraform Apply') {
             when {
-                expression { env.BRANCH_NAME == 'main' } // Run after merge to main
+                expression { env.BRANCH_NAME == 'main' && !env.TF_PLAN_DIRS.isEmpty() } // Run after merge to main
             }
             steps {
                 script {
