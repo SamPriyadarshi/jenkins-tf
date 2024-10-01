@@ -78,7 +78,7 @@ pipeline {
                             echo "Running Terraform plan for directory: ${dir}"
                             sh 'terraform'
                             dir(dir) {
-                                sh 'terraform init'
+                                sh 'terraform init -reconfigure'
                                 sh 'terraform validate'
                                 sh 'terraform plan'
                             }
@@ -99,7 +99,7 @@ pipeline {
                         if (dir) {
                             echo "Running Terraform apply for directory: ${dir}"
                             dir(dir) {
-                                sh 'terraform init'
+                                sh 'terraform init -reconfigure'
                                 sh 'terraform plan'
                                 sh 'terraform apply -auto-approve'
                             }
