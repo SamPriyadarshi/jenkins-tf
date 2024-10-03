@@ -98,26 +98,10 @@ pipeline {
                                         echo "Terraform validate failed in ${dir}."
                                         exit 1 
                                     fi
-                                    terraform plan
-                                    githubNotify(
-                                    credentialsId: '9c962a1b-f9f4-4b22-905b-b8d4aef09a55', // Replace with your GitHub credentials ID
-                                    repo: 'SamPriyadarshi/jenkins-tf', // Replace with your GitHub repository name
-                                    sha: env.GIT_COMMIT, 
-                                    status: 'SUCCESS', 
-                                    context: 'Terraform Plan', 
-                                    description: 'Terraform plan completed successfully'
-                                )                                    
+                                    terraform plan                                
                                 """
                             } catch (Exception ex) {
                                 echo "Error running Terraform plan in directory ${dir}: ${ex.message}"
-                                githubNotify(
-                                credentialsId: '9c962a1b-f9f4-4b22-905b-b8d4aef09a55',
-                                repo: 'SamPriyadarshi/jenkins-tf',
-                                sha: env.GIT_COMMIT,
-                                status: 'FAILURE',
-                                context: 'Terraform Plan',
-                                description: 'Terraform plan failed'
-                        )
                             }
                         }
                     }
