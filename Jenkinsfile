@@ -91,14 +91,18 @@ pipeline {
                                     terraform fmt -check -recursive
                                     if [[ \$? -ne 0 ]]; then 
                                         echo "Terraform fmt failed in ${dir}."
-                                        exit 1 
+                                        exit 1
                                     fi
-                                    terraform validate
-                                    if [[ \$? -ne 0 ]]; then 
+                                    terraform validate | tee validate.out
+                                    if [[ \$? -ne 0 ]] || grep -q 'Error:' validate.out; then
                                         echo "Terraform validate failed in ${dir}."
-                                        exit 1 
+                                        exit 1
                                     fi
-                                    terraform plan                                
+                                    terraform plan | tee plan.out
+                                    if grep -q 'Error:' plan.out; then
+                                        echo "Terraform plan failed in ${dir}."
+                                        exit 1
+                                    fi                             
                                 """
                             } catch (Exception ex) {
                                 echo "Error running Terraform plan in directory ${dir}: ${ex.message}"
