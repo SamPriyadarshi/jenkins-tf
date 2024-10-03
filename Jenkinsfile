@@ -88,8 +88,16 @@ pipeline {
                                 sh """
                                     cd "${dir}"
                                     terraform init
-                                    terraform fmt -check -recursive || error "Terraform fmt failed in ${dir}."
-                                    terraform validate || error "Terraform validate failed in ${dir}."
+                                    terraform fmt -check -recursive
+                                    if [[ \$? -ne 0 ]]; then 
+                                        echo "Terraform fmt failed in ${dir}."
+                                        exit 1 
+                                    fi
+                                    terraform validate
+                                    if [[ \$? -ne 0 ]]; then 
+                                        echo "Terraform validate failed in ${dir}."
+                                        exit 1 
+                                    fi
                                     terraform plan
                                 """
                             } catch (Exception ex) {
