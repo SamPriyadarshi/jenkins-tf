@@ -8,7 +8,7 @@ terraform {
 }
 
 resource "random_id" "test" {
-  byte_length = 8
+  byte_length = 12
 }
 
 output "random_id" {
