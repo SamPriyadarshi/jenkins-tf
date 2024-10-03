@@ -106,6 +106,7 @@ pipeline {
                                 """
                             } catch (Exception ex) {
                                 echo "Error running Terraform plan in directory ${dir}: ${ex.message}"
+                                error("Terraform plan failed.")
                             }
                         }
                     }
