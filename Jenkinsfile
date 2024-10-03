@@ -138,6 +138,7 @@ pipeline {
                                 """
                             } catch (Exception ex) {
                                 echo "Error running Terraform apply in directory ${dir}: ${ex.message}"
+                                error("Terraform apply failed.")
                             }
                         }
                     }
