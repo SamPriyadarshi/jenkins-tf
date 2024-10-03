@@ -44,12 +44,7 @@ pipeline {
                             def gitDiffOutputTfvars = sh(returnStdout: true, script: "git --no-pager diff --name-only ${env.GIT_COMMIT} ${commonAncestor} -- '*.tfvars'").trim()
 
                             if (gitDiffOutputTf || gitDiffOutputTfvars) {  // Only proceed if there's output
-                                // Prepend '.' to the output if any .tf or .tfvars files are changed in the root directory
-                                if (gitDiffOutputTf.contains(".tf") || gitDiffOutputTfvars.contains(".tfvars")) {
-                                    tf_plan_dirs = sh(returnStdout: true, script: "echo '.'\n'${gitDiffOutputTf}\n${gitDiffOutputTfvars}' | xargs dirname | sort | uniq").trim().split('\n')
-                                } else {
-                                    tf_plan_dirs = sh(returnStdout: true, script: "echo '${gitDiffOutputTf}\n${gitDiffOutputTfvars}' | xargs dirname | sort | uniq").trim().split('\n')
-                                }
+                                tf_plan_dirs = sh(returnStdout: true, script: "echo '${gitDiffOutputTf}\n${gitDiffOutputTfvars}' | xargs dirname | sort | uniq").trim().split('\n')
                             }
                         } else {
                             // For merges to main, compare the merge commit's parents
@@ -61,12 +56,7 @@ pipeline {
                             def gitDiffOutputTfvars = sh(returnStdout: true, script: "git --no-pager diff --name-only ${parent1} ${parent2} -- '*.tfvars'").trim()
 
                             if (gitDiffOutputTf || gitDiffOutputTfvars) {  // Only proceed if there's output
-                                // Prepend '.' to the output if any .tf or .tfvars files are changed in the root directory
-                                if (gitDiffOutputTf.contains(".tf") || gitDiffOutputTfvars.contains(".tfvars")) {
-                                    tf_plan_dirs = sh(returnStdout: true, script: "echo '.'\n'${gitDiffOutputTf}\n${gitDiffOutputTfvars}' | xargs dirname | sort | uniq").trim().split('\n')
-                                } else {
-                                    tf_plan_dirs = sh(returnStdout: true, script: "echo '${gitDiffOutputTf}\n${gitDiffOutputTfvars}' | xargs dirname | sort | uniq").trim().split('\n')
-                                }
+                                tf_plan_dirs = sh(returnStdout: true, script: "echo '${gitDiffOutputTf}\n${gitDiffOutputTfvars}' | xargs dirname | sort | uniq").trim().split('\n')
                             }
                         }
                     }
