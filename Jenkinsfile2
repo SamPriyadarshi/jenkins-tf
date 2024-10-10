@@ -1,0 +1,132 @@
+pipeline {
+    agent { label 'gcp' }
+    environment {
+        GOOGLE_APPLICATION_CREDENTIALS = credentials('gcp-api-cred')
+     }
+    environment {
+        BRANCH_NAME = ""
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+                script {
+                    // Determine the branch name (same as before)
+                    if (env.CHANGE_BRANCH) {
+                        env.BRANCH_NAME = env.CHANGE_BRANCH
+                    } else if (env.GIT_BRANCH) {
+                        env.BRANCH_NAME = env.GIT_BRANCH
+                    } else {
+                        env.BRANCH_NAME = env.GITHUB_REF.replace('refs/heads/', '')
+                    }
+
+                    echo "Building branch: ${env.BRANCH_NAME}"
+                }
+            }
+        }
+
+        stage('Check for Changes') {
+            steps {
+                script {
+                    def changesDetected = false
+
+                    if (env.BUILD_REASON == 'Manual') {
+                        // For manual triggers, always run
+                        changesDetected = true
+                    } else {
+                        if (env.BRANCH_NAME != 'origin/main') {
+                            // For Merge Requests, compare with the target branch
+                            sh "git checkout origin/main"
+                            sh "git checkout ${env.BRANCH_NAME}"
+                            def commonAncestor = sh(returnStdout: true, script: "git merge-base origin/main ${env.BRANCH_NAME}").trim()
+
+                            // Check for changes in *.tf or *.tfvars files in the root directory
+                            def gitDiffOutput = sh(returnStdout: true, script: "git --no-pager diff --name-only ${env.GIT_COMMIT} ${commonAncestor} -- '*.tf' '*.tfvars'").trim()
+                            if (gitDiffOutput) {
+                                changesDetected = true
+                            }
+                        } else {
+                            // For merges to main, compare the merge commit's parents
+                            def mergeCommitParents = sh(returnStdout: true, script: "git rev-list --parents ${env.GIT_COMMIT} -n 1").trim().split()
+                            def parent1 = mergeCommitParents[0]
+                            def parent2 = mergeCommitParents[1]
+
+                            // Check for changes in *.tf or *.tfvars files in the root directory
+                            def gitDiffOutput = sh(returnStdout: true, script: "git --no-pager diff --name-only ${parent1} ${parent2} -- '*.tf' '*.tfvars'").trim()
+                            if (gitDiffOutput) {
+                                changesDetected = true
+                            }
+                        }
+                    }
+
+                    // If no changes are detected, skip the next stages
+                    if (!changesDetected) {
+                        echo "No Terraform files changed. Skipping Terraform execution."
+                        currentBuild.result = 'NOT_BUILT' 
+                        return
+                    }
+                }
+            }
+        }
+
+        stage('Terraform Plan') {
+            when {
+                expression { env.BRANCH_NAME != 'origin/main' }
+            }
+            steps {
+                script {
+                        // Initialize the terraform
+                        def exitCode = sh(script: "terraform init", returnStatus: true)
+                        if (exitCode != 0) {
+                            error("Terraform init failed with exit code ${exitCode}")
+                        }
+                        // Check terraform format
+                        exitCode = sh(script: "terraform fmt -check -recursive", returnStatus: true)
+                        if (exitCode != 0) {
+                            error("Terraform fmt failed with exit code ${exitCode}")
+                        }
+                        // Validate terraform configurations
+                        exitCode = sh(script: "terraform validate", returnStatus: true)
+                        if (exitCode != 0) {
+                            error("Terraform validate failed with exit code ${exitCode}")
+                        }
+                        // Generate terraform plan
+                        exitCode = sh(script: "terraform plan -input=false -out tfplan", returnStatus: true)
+                        if (exitCode != 0) {
+                            error("Terraform Plan failed with exit code ${exitCode}")
+                    }
+                }
+            }
+        }
+
+        stage('Terraform Apply') {
+            when {
+                expression { env.BRANCH_NAME == 'origin/main' }
+            }
+            steps {
+                script {
+                        // Initialize the terraform
+                        def exitCode = sh(script: "terraform init", returnStatus: true)
+                        if (exitCode != 0) {
+                            error("Terraform init failed with exit code ${exitCode}")
+                        }
+                        // Generate terraform plan
+                        exitCode = sh(script: "terraform plan -input=false -out tfplan && terraform show -no-color tfplan > tfplan.txt", returnStatus: true)
+                        if (exitCode != 0) {
+                            error("Terraform Plan failed with exit code ${exitCode}")
+                        }
+                        // Terraform plan approval
+                        def plan = readFile "tfplan.txt"
+                        input message: 'Do you want to apply the plan?',
+                        parameters: [text(name: 'Plan', description: 'Please review the plan', defaultValue: plan)]
+                        // Terraform Apply
+                        exitCode = sh(script: "terraform apply -input=false tfplan", returnStatus: true)
+                        if (exitCode != 0) {
+                            error("Terraform Apply failed with exit code ${exitCode}")
+                        }
+                }
+            }
+        }
+    }
+}
